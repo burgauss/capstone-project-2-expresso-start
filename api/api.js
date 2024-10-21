@@ -1,6 +1,6 @@
 const express = require('express');
-const artistsRouter = require('./employees.js');
-const seriesRouter = require('./menus.js');
+const employeesRouter = require('./employees.js');
+const menusRouter = require('./menus.js');
 
 const apiRouter = express.Router();
 
