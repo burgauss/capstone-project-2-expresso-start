@@ -1,9 +1,10 @@
 const express = require('express');
 const sqlite = require('sqlite3');
-const { ModuleFilenameHelpers } = require('webpack');
+const timesheetsRouter = require('./timesheets.js');
 
 const db = new sqlite.Database(process.env.TEST_DATABASE || './database.sqlite');
 const employeesRouter = express.Router();
+
 
 const validateEmployee = (req, res, next) => {
     const {name, position, wage} = req.body.employee;
@@ -27,6 +28,9 @@ employeesRouter.param('id', (req, res, next, id)=> {
         }
     })
 });
+
+employeesRouter.use('/:id/timesheets', timesheetsRouter);
+
 
 employeesRouter.get('/', (req, res, next) =>{
     const sql =`SELECT * FROM Employee WHERE is_current_employee = 1`;
