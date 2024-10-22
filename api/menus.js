@@ -1,8 +1,25 @@
 const express = require('express');
 const sqlite = require('sqlite3');
+const menuItemsRouter = require('./menuitems.js');
 
 const db = new sqlite.Database(process.env.TEST_DATABASE || './database.sqlite');
 const menusRouter = express.Router();
+
+menusRouter.param('menuId', (req,res,next,id)=>{
+    db.get("SELECT * FROM Menu WHERE id = $id", {$id:id}, (err, menu) =>{
+        if (err){
+            return next(err); // Pass the error to the next middleware (the error handler)
+        } 
+        if (menu){
+            req.menu = menu;
+            next();
+        } else{
+            return res.status(404).send("The menu was not found");
+        }
+    })
+});
+
+menusRouter.use('/:menuId/menu-items/', menuItemsRouter);
 
 menusRouter.get('/', (req, res, next)=>{
     const sql =`SELECT * FROM Menu`;
@@ -38,20 +55,6 @@ menusRouter.post('/', (req, res, next)=>{
             res.status(201).send({menu: menu});
             });
 
-    })
-});
-
-menusRouter.param('menuId', (req,res,next,id)=>{
-    db.get("SELECT * FROM Menu WHERE id = $id", {$id:id}, (err, menu) =>{
-        if (err){
-            return next(err); // Pass the error to the next middleware (the error handler)
-        } 
-        if (menu){
-            req.menu = menu;
-            next();
-        } else{
-            return res.status(404).send("The menu was not found");
-        }
     })
 });
 
