@@ -39,20 +39,60 @@ menuItemsRouter.post('/', (req, res, next)=>{
         })
     
     })
-})
+});
 
 menuItemsRouter.put('/:menuItemId', (req, res, next)=>{
     const {name, description, inventory, price} = req.body.menuItem;
+ 
+    db.get(`SELECT * FROM MenuItem WHERE id=$id`,{$id:req.params.menuItemId}, (err, menuItem)=>{
+        //TODO: Error in the PUT
+        if(err){
+            return next(err);
+        }
+        if(!menuItem){
+            return res.status(404).send();
+        }
+        if (!name || !description || !inventory || !price){
+            return res.status(400).send();
+        }
+        sql = `UPDATE MenuItem SET name=$name, description=$description, inventory=$inventory, price=$price, menu_id=$menuId`;
+        ref = {$name:name, $description:description, $inventory:inventory, $price:price, $menuId:req.params.menuItemId};
 
-    if (!name || !description || !inventory || !price){
-        return res.status(400).send();
-    }
-
-    db.get(`SELECT * FROM MenuItem WHERE menu_id=$menuId`,{$menuId:req.params.menuId}, (err, menuItem)=>{
-        //TODO
+        db.run(sql, ref, function(err){
+            if(err){
+                return next(err);
+            }
+            db.get(`SELECT * FROM MenuItem WHERE id=$id`, {$id:req.params.menuItemId}, (err, menuItem)=>{
+                //TODO
+                if(err){
+                    return next(err);
+                }
+                if(!menuItem){
+                    return res.status(500).send();
+                }
+                return res.status(200).send({menuItem:menuItem});
+            })
+        });
     });
 
-})
+});
 
+menuItemsRouter.delete('/:menuItemId', (req, res, next)=> {
+    db.get(`SELECT * FROM MenuItem WHERE id=$id`,{$id:req.params.menuItemId}, (err, menuItem)=>{
+        if(err){
+            return next(err);
+        }
+        if(!menuItem){
+            return res.status(404).send();
+        }
+        db.run(`DELETE FROM MenuItem WHERE id=$id`,{$id:req.params.menuItemId}, function(err){
+            if(err)
+            {
+                return next(err);
+            }
+            res.status(204).send();
+        });
+    });
+});
 
 module.exports = menuItemsRouter;
